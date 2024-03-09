@@ -1,7 +1,7 @@
 import { extend } from './shard'
 
 class ReactiveEffect {
-  private _fn
+  private _fn: Function
   // effect对应的dep，反向收集
   public deps = []
   // 当前的effect是否会执行（stop会把他变成false）
@@ -29,7 +29,7 @@ class ReactiveEffect {
   }
 }
 
-const cleanupEffect = (effect) => {
+const cleanupEffect = (effect: ReactiveEffect) => {
   effect.deps.forEach((dep: Set<any>) => {
     dep.delete(effect)
   })
@@ -41,7 +41,7 @@ let activeEffect: any
 const targetMap = new WeakMap()
 
 // 依赖收集
-export function track(target: any, key: any) {
+export function track(target: object, key: string | symbol) {
   // depsMap: all deps -> dep(set)
   let depsMap = targetMap.get(target)
   // 第一次，需要先创建映射关系
@@ -64,7 +64,7 @@ export function track(target: any, key: any) {
 }
 
 // 触发依赖
-export function trigger(target, key) {
+export function trigger(target: object, key: string | symbol) {
   const depsMap = targetMap.get(target)
 
   const dep = depsMap.get(key)
@@ -80,7 +80,7 @@ export function trigger(target, key) {
 
 // 停止触发 方式是删除effect的依赖
 // runner是接收到的effect.run
-export function stop(runner) {
+export function stop(runner:any) {
   runner.effect.stop()
 }
 
@@ -92,6 +92,7 @@ export function effect(fn: Function, options: any = {}) {
   // 把原函数返回出去，注意this需要重绑定，否则会拿不到_fn
   const runner = _effect.run.bind(_effect)
   // 在runner上挂该effect
+  // TODO 修一下runner的类型问题
   runner.effect = _effect
 
   return runner

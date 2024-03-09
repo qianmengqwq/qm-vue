@@ -86,5 +86,6 @@ describe('effect', () => {
     stop(runner)
 
     expect(onStop).toBeCalledTimes(1)
+
   })
 })
