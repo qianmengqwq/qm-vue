@@ -1,4 +1,4 @@
-import { extend } from './shard'
+import { extend } from '../shard'
 
 class ReactiveEffect {
   private _fn: Function
@@ -13,9 +13,16 @@ class ReactiveEffect {
     this.scheduler = scheduler
   }
   run() {
+    // 如果stop状态
+    if (!this.active) {
+      return this._fn()
+    }
+    shouldTrack = true
     activeEffect = this
     // 调用fn并返回fn返回值
     const res = this._fn()
+    // reset
+    shouldTrack = false
     return res
   }
   stop() {
@@ -33,15 +40,24 @@ const cleanupEffect = (effect: ReactiveEffect) => {
   effect.deps.forEach((dep: Set<any>) => {
     dep.delete(effect)
   })
+  effect.deps.length = 0
 }
 
 // 全局变量，用来存储当前的effect
 let activeEffect: any
+let shouldTrack: boolean = false
 // targetMap:raw -> depsMap
 const targetMap = new WeakMap()
 
+function isTracking() {
+  // 如果不应该收集，也就是被stop的情况中的++/--
+  // 如果当前effect有值
+  return shouldTrack && activeEffect
+}
+
 // 依赖收集
 export function track(target: object, key: string | symbol) {
+  if (!isTracking()) return
   // depsMap: all deps -> dep(set)
   let depsMap = targetMap.get(target)
   // 第一次，需要先创建映射关系
@@ -57,7 +73,7 @@ export function track(target: object, key: string | symbol) {
     depsMap.set(key, dep)
   }
 
-  // if (!activeEffect) return
+  if (dep.has(activeEffect)) return
   dep.add(activeEffect)
   // 反向存一下dep，否则拿不到
   activeEffect.deps.push(dep)
@@ -80,7 +96,7 @@ export function trigger(target: object, key: string | symbol) {
 
 // 停止触发 方式是删除effect的依赖
 // runner是接收到的effect.run
-export function stop(runner:any) {
+export function stop(runner: any) {
   runner.effect.stop()
 }
 

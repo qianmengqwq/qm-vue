@@ -1,16 +1,46 @@
-import { track, trigger } from './index'
-export function reactive<T extends object>(raw: T) {
-  return new Proxy(raw, {
-    get(target, key, receiver) {
-      const res = Reflect.get(target, key, receiver)
-      track(target, key)
-      return res
-    },
+import {
+  mutableHandlers,
+  readonlyHandlers,
+  shallowReadonlyHandlers,
+} from './baseHandler'
 
-    set(target, key, value, receiver) {
-      const res = Reflect.set(target, key, value, receiver)
-      trigger(target, key)
-      return res
-    },
-  })
+type BaseHandler =
+  | typeof mutableHandlers
+  | typeof readonlyHandlers
+  | typeof shallowReadonlyHandlers
+const createReactiveObject = <T extends object>(
+  raw: T,
+  baseHandlers: BaseHandler
+) => {
+  return new Proxy<T>(raw, baseHandlers)
+}
+
+export function reactive<T extends object>(raw: T) {
+  return createReactiveObject(raw, mutableHandlers)
+}
+
+export function readonly<T extends object>(raw: T) {
+  return createReactiveObject(raw, readonlyHandlers)
+}
+
+export function shallowReadonly<T extends object>(raw: T) {
+  return createReactiveObject(raw, shallowReadonlyHandlers)
+}
+
+enum ReactiveFlags {
+  IS_REACTIVE = '__v_isReactive',
+  IS_READONLY = '__v_isReadonly',
+}
+
+// 传原始对象会访问不到指定属性，把undefined变成true
+export function isReactive(value: any) {
+  return !!value[ReactiveFlags.IS_REACTIVE]
+}
+
+export function isReadonly(value: any) {
+  return !!value[ReactiveFlags.IS_READONLY]
+}
+
+export function isProxy(value: any) {
+  return isReactive(value) || isReadonly(value)
 }
