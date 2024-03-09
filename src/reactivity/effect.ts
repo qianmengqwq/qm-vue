@@ -1,24 +1,33 @@
 import { extend } from '../shard'
-type RunnerObj = {
+interface RunnerObj {
   effect: ReactiveEffect
   runner: Function
+}
+
+interface EffectOptions {
+  scheduler?: Function
+  onStop?: Function
 }
 class ReactiveEffect {
   private _fn: Function
   // effect对应的dep，反向收集
-  public deps = []
+  public deps: Set<ReactiveEffect>[] = []
   // 当前的effect是否会执行（stop会把他变成false）
   public active = true
+
+  // options相关
   public scheduler: Function | undefined
   public onStop: Function | undefined
+
   constructor(fn: Function, scheduler?: Function) {
     this._fn = fn
     this.scheduler = scheduler
   }
-  run() {
+  run():RunnerObj {
     // 如果stop状态
     if (!this.active) {
-      return this._fn()
+      const res = this._fn()
+      return res
     }
     shouldTrack = true
     activeEffect = this
@@ -47,7 +56,7 @@ const cleanupEffect = (effect: ReactiveEffect) => {
 }
 
 // 全局变量，用来存储当前的effect
-let activeEffect: any
+let activeEffect: ReactiveEffect | undefined
 let shouldTrack: boolean = false
 // targetMap:raw -> depsMap
 const targetMap = new WeakMap()
@@ -55,7 +64,7 @@ const targetMap = new WeakMap()
 function isTracking() {
   // 如果不应该收集，也就是被stop的情况中的++/--
   // 如果当前effect有值
-  return shouldTrack && activeEffect
+  return shouldTrack && !!activeEffect
 }
 
 // 依赖收集
@@ -70,12 +79,14 @@ export function track(target: object, key: string | symbol) {
   }
 
   // 找到dep
-  let dep: Set<object> = depsMap.get(key)
+  let dep: Set<ReactiveEffect> = depsMap.get(key)
+
   if (!dep) {
     dep = new Set()
     depsMap.set(key, dep)
   }
 
+  if (!activeEffect) return
   if (dep.has(activeEffect)) return
   dep.add(activeEffect)
   // 反向存一下dep，否则拿不到
@@ -88,23 +99,24 @@ export function trigger(target: object, key: string | symbol) {
 
   const dep = depsMap.get(key)
 
-  for (let effect of dep) {
+  dep.forEach((effect: ReactiveEffect) => {
     if (effect.scheduler) {
       effect.scheduler()
     } else {
       effect.run()
     }
-  }
+  })
 }
 
 // 停止触发 方式是删除effect的依赖
 // runner是接收到的effect.run
+// runnerObj是包了一层的对象
 export function stop(runnerObj: RunnerObj) {
   runnerObj.effect.stop()
 }
 
-export function effect(fn: Function, options: any = {}) {
-  const _effect = new ReactiveEffect(fn, options.scheduler)
+export function effect(fn: Function, options: EffectOptions = {}) {
+  const _effect = new ReactiveEffect(fn)
   extend(_effect, options)
 
   _effect.run()

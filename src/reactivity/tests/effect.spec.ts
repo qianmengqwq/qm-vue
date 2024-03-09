@@ -89,4 +89,16 @@ describe('effect', () => {
 
     expect(onStop).toBeCalledTimes(1)
   })
+
+  it('understand effect fn',()=>{
+    const fn = ()=>{
+      return 'fn-result'
+    }
+    const res = effect(fn)
+    console.log('res',res)
+    console.log('res.runner',res.runner)
+    console.log('res.runner()',res.runner())
+    const res2 = res.runner()
+    expect(res2).toBe('fn-result')
+  })
 })
