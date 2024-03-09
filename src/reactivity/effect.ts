@@ -1,7 +1,7 @@
 import { extend } from '../shard'
-interface RunnerObj {
+interface Runner {
   effect: ReactiveEffect
-  runner: Function
+  run: Function
 }
 
 interface EffectOptions {
@@ -23,7 +23,7 @@ class ReactiveEffect {
     this._fn = fn
     this.scheduler = scheduler
   }
-  run():RunnerObj {
+  run():Runner {
     // 如果stop状态
     if (!this.active) {
       const res = this._fn()
@@ -111,8 +111,8 @@ export function trigger(target: object, key: string | symbol) {
 // 停止触发 方式是删除effect的依赖
 // runner是接收到的effect.run
 // runnerObj是包了一层的对象
-export function stop(runnerObj: RunnerObj) {
-  runnerObj.effect.stop()
+export function stop(runner: Runner) {
+  runner.effect.stop()
 }
 
 export function effect(fn: Function, options: EffectOptions = {}) {
@@ -121,12 +121,12 @@ export function effect(fn: Function, options: EffectOptions = {}) {
 
   _effect.run()
   // 把原函数返回出去，注意this需要重绑定，否则会拿不到_fn
-  const runner = _effect.run.bind(_effect)
+  const run = _effect.run.bind(_effect)
   // 在runner上挂该effect
-  const runnerObj = {
+  const runner: Runner = {
     effect: _effect,
-    runner,
+    run,
   }
 
-  return runnerObj
+  return runner
 }

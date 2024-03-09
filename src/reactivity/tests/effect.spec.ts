@@ -17,13 +17,13 @@ describe('effect', () => {
 
   it('return runner', () => {
     let foo = 10
-    const runnerObj = effect(() => {
+    const runner = effect(() => {
       foo++
       return 'foo'
     })
 
     expect(foo).toBe(11)
-    const r = runnerObj.runner()
+    const r = runner.run()
     expect(foo).toBe(12)
     expect(r).toBe('foo')
   })
@@ -32,12 +32,12 @@ describe('effect', () => {
     let dummy: any
     let run: any
     const scheduler = jest.fn(() => {
-      run = runnerObj.runner
+      run = runner.run
     })
     const obj = reactive({
       foo: 1,
     })
-    const runnerObj = effect(
+    const runner = effect(
       () => {
         dummy = obj.foo
       },
@@ -56,19 +56,19 @@ describe('effect', () => {
   it('stop', () => {
     let dummy
     const obj = reactive({ foo: 1 })
-    const runnerObj = effect(() => {
+    const runner = effect(() => {
       dummy = obj.foo
     })
     expect(dummy).toBe(1)
     obj.foo = 2
     expect(dummy).toBe(2)
-    stop(runnerObj)
+    stop(runner)
     // obj.foo = 3
     // get + set，重新收集依赖
     obj.foo++
     expect(dummy).toBe(2)
 
-    runnerObj.runner()
+    runner.run()
     expect(dummy).toBe(3)
   })
 
@@ -90,15 +90,19 @@ describe('effect', () => {
     expect(onStop).toBeCalledTimes(1)
   })
 
-  it('understand effect fn',()=>{
-    const fn = ()=>{
+  it('understand effect fn', () => {
+    const fn = () => {
       return 'fn-result'
     }
     const res = effect(fn)
-    console.log('res',res)
-    console.log('res.runner',res.runner)
-    console.log('res.runner()',res.runner())
-    const res2 = res.runner()
+    effect(()=>{
+      const res2 = 1
+      console.log('res2',res2)
+    })
+    console.log('res', res)
+    console.log('res.runner', res.run)
+    console.log('res.runner()', res.run())
+    const res2 = res.run()
     expect(res2).toBe('fn-result')
   })
 })
