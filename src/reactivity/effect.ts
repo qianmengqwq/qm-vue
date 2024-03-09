@@ -1,5 +1,8 @@
 import { extend } from '../shard'
-
+type RunnerObj = {
+  effect: ReactiveEffect
+  runner: Function
+}
 class ReactiveEffect {
   private _fn: Function
   // effect对应的dep，反向收集
@@ -96,8 +99,8 @@ export function trigger(target: object, key: string | symbol) {
 
 // 停止触发 方式是删除effect的依赖
 // runner是接收到的effect.run
-export function stop(runner: any) {
-  runner.effect.stop()
+export function stop(runnerObj: RunnerObj) {
+  runnerObj.effect.stop()
 }
 
 export function effect(fn: Function, options: any = {}) {
@@ -108,8 +111,10 @@ export function effect(fn: Function, options: any = {}) {
   // 把原函数返回出去，注意this需要重绑定，否则会拿不到_fn
   const runner = _effect.run.bind(_effect)
   // 在runner上挂该effect
-  // TODO 修一下runner的类型问题
-  runner.effect = _effect
+  const runnerObj = {
+    effect: _effect,
+    runner,
+  }
 
-  return runner
+  return runnerObj
 }

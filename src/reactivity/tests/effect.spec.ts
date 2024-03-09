@@ -17,13 +17,13 @@ describe('effect', () => {
 
   it('return runner', () => {
     let foo = 10
-    const runner = effect(() => {
+    const runnerObj = effect(() => {
       foo++
       return 'foo'
     })
 
     expect(foo).toBe(11)
-    const r = runner()
+    const r = runnerObj.runner()
     expect(foo).toBe(12)
     expect(r).toBe('foo')
   })
@@ -32,12 +32,12 @@ describe('effect', () => {
     let dummy: any
     let run: any
     const scheduler = jest.fn(() => {
-      run = runner
+      run = runnerObj.runner
     })
     const obj = reactive({
       foo: 1,
     })
-    const runner = effect(
+    const runnerObj = effect(
       () => {
         dummy = obj.foo
       },
@@ -56,19 +56,19 @@ describe('effect', () => {
   it('stop', () => {
     let dummy
     const obj = reactive({ foo: 1 })
-    const runner = effect(() => {
+    const runnerObj = effect(() => {
       dummy = obj.foo
     })
     expect(dummy).toBe(1)
     obj.foo = 2
     expect(dummy).toBe(2)
-    stop(runner)
+    stop(runnerObj)
     // obj.foo = 3
     // get + set，重新收集依赖
     obj.foo++
     expect(dummy).toBe(2)
 
-    runner()
+    runnerObj.runner()
     expect(dummy).toBe(3)
   })
 
@@ -88,6 +88,5 @@ describe('effect', () => {
     stop(runner)
 
     expect(onStop).toBeCalledTimes(1)
-
   })
 })
