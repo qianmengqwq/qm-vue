@@ -1,30 +1,40 @@
-export function createComponentInstance(vnode: any) {
-  const component = {
+import { instanceProxyHandler } from "./instanceProxyHandler"
+
+export function createComponentInstance(vnode: Vnode) {
+  const component: ComponentInstance = {
     vnode,
     type: vnode.type,
+    setupState: {},
+    proxy: {},
+    render: () => {},
   }
   return component
 }
 
-export function setupComponent(instance: any) {
+export function setupComponent(instance: ComponentInstance) {
   // initProps()
   // initSlots()
 
   setupStatefulComponent(instance)
 }
 
-function setupStatefulComponent(instance: any) {
-  const Component = instance.vnode.type
+function setupStatefulComponent(instance: ComponentInstance) {
+  const Component = instance.type
+  instance.proxy = new Proxy(
+    {_: instance},
+    instanceProxyHandler
+  )
   const { setup } = Component
   if (setup) {
-    //function -> render Object -> 注入到上下文中
+    //function -> render
+    // Object -> 注入到上下文中
     const setupResult = setup()
 
     handleSetupResult(instance, setupResult)
   }
 }
 
-function handleSetupResult(instance: any, setupResult: any) {
+function handleSetupResult(instance: ComponentInstance, setupResult: any) {
   if (typeof setupResult === 'object') {
     instance.setupState = setupResult
   }
@@ -32,7 +42,8 @@ function handleSetupResult(instance: any, setupResult: any) {
   finishComponentSetup(instance)
 }
 
-function finishComponentSetup(instance: any) {
+function finishComponentSetup(instance: ComponentInstance) {
   const Component = instance.type
+
   instance.render = Component.render
 }
