@@ -49,7 +49,7 @@ let shouldTrack: boolean = false
 // targetMap:raw -> depsMap
 const targetMap = new WeakMap()
 
-function isTracking() {
+export function isTracking() {
   // 如果不应该收集，也就是被stop的情况中的++/--
   // 如果当前effect有值
   return shouldTrack && activeEffect
@@ -73,10 +73,24 @@ export function track(target: object, key: string | symbol) {
     depsMap.set(key, dep)
   }
 
+  trackEffects(dep)
+}
+
+export function trackEffects(dep) {
   if (dep.has(activeEffect)) return
   dep.add(activeEffect)
   // 反向存一下dep，否则拿不到
   activeEffect.deps.push(dep)
+}
+
+export function triggerEffects(dep) {
+  for (let effect of dep) {
+    if (effect.scheduler) {
+      effect.scheduler()
+    } else {
+      effect.run()
+    }
+  }
 }
 
 // 触发依赖
@@ -85,13 +99,7 @@ export function trigger(target: object, key: string | symbol) {
 
   const dep = depsMap.get(key)
 
-  for (let effect of dep) {
-    if (effect.scheduler) {
-      effect.scheduler()
-    } else {
-      effect.run()
-    }
-  }
+  triggerEffects(dep)
 }
 
 // 停止触发 方式是删除effect的依赖
