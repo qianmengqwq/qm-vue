@@ -1,16 +1,20 @@
 import { hasChanged, isObject } from '../shard'
-import { isTracking, trackEffects, triggerEffects } from './effect'
+import {
+  ReactiveEffect,
+  isTracking,
+  trackEffects,
+  triggerEffects,
+} from './effect'
 import { reactive } from './reactive'
 
 class RefImpl {
-  private _value: any
-  public dep
-  private _raw
+  public _value: any
+  public dep: Set<ReactiveEffect>
+  private _raw: any
   public __v_isRef = true
-  constructor(value: any) {
-    this._raw = value
-    this._value = refToReactive(value)
-
+  constructor(raw: any) {
+    this._raw = raw
+    this._value = refToReactive(raw)
     this.dep = new Set()
   }
   get value() {
@@ -25,39 +29,42 @@ class RefImpl {
   }
 }
 
-function refToReactive(value) {
+function refToReactive(value: any) {
   return isObject(value) ? reactive(value) : value
 }
 
-function trackRefValue(ref) {
+function trackRefValue(ref: RefImpl) {
   if (isTracking()) {
     trackEffects(ref.dep)
   }
   return ref._value
 }
 
-export function ref(value: any) {
+export function ref<T>(value: T) {
   return new RefImpl(value)
 }
 
-export function isRef(ref) {
+export function isRef(ref: any) {
   return !!ref.__v_isRef
 }
 
-export function unRef(ref) {
+export function unRef(ref: any) {
   return isRef(ref) ? ref.value : ref
 }
 
+interface Ref<T> {
+  value: T
+}
 // 用于模版中可以直接拿到ref值
-export function proxyRefs(objectWithRefs) {
-  return new Proxy(objectWithRefs, {
+export function proxyRefs<T extends object>(objectWithRefs: T) {
+  return new Proxy<T>(objectWithRefs, {
     get(target, key, receiver) {
       return unRef(Reflect.get(target, key, receiver))
     },
     set(target, key, value, receiver) {
       if (isRef(Reflect.get(target, key, receiver)) && !isRef(value)) {
-        return target[key].value = value
-      } else{
+        return ((target[key as keyof T] as Ref<any>).value = value)
+      } else {
         return Reflect.set(target, key, value, receiver)
       }
     },
