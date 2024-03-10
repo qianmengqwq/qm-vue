@@ -1,6 +1,6 @@
 import { extend } from '../shard'
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: Function
   // effect对应的dep，反向收集
   public deps = []
