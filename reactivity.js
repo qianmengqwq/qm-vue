@@ -26,9 +26,9 @@ function trigger(target, key) {
   }
   let dep = depsMap.get(key) // If there are dependencies (effects) associated with this
   if (dep) {
-    dep.forEach((effect) => {
+    dep.forEach((eff) => {
       // run them all
-      effect()
+      eff()
     })
   }
 }
@@ -52,34 +52,62 @@ function reactive(target) {
   return new Proxy(target, handler)
 }
 
+function ref(raw) {
+  const r = {
+    get value() {
+      track(r, 'value')
+      return raw
+    },
+    set value(newVal) {
+      raw = newVal
+      trigger(r, 'value')
+    },
+  }
+  return r
+}
+
 function effect(eff) {
   activeEffect = eff
   activeEffect()
   activeEffect = null
 }
 
-let person = reactive({
-  last: 'qwq',
-  first: 'sayori',
-  hobby: [
-    {
-      name: {
-        play: 'football',
-      },
-    },
-  ],
+function computed(getter) {
+  let result = ref()
+
+  effect(() => (result.value = getter()))
+
+  return result
+}
+
+let product = reactive({ price: 5, quantity: 2 })
+
+let salePrice = computed(() => {
+  return product.price * 0.9
 })
 
+let total = computed(() => {
+  return salePrice.value * product.quantity
+})
 
-console.log('person', person)
-console.log('play',person.hobby[0].name.play)
+console.log(
+  `Before updated quantity total (should be 9) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
+)
+product.quantity = 3
+console.log(
+  `After updated quantity total (should be 13.5) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
+)
+product.price = 10
+console.log(
+  `After updated price total (should be 27) = ${total.value} salePrice (should be 9) = ${salePrice.value}`
+)
+
+// Plus let's verify we can add additional objects to the reactive object
+
+product.name = 'Shoes'
+
 effect(() => {
-  person.last = 'qwqqqqq'
-  person.first = 'sa'
-  person.hobby[0].name = {
-    play: 'basketball',
-  }
+  console.log(`Product name is now ${product.name}`)
 })
 
-console.log('person2', person)
-console.log('play2',person.hobby[0].name.play)
+product.name = 'Socks'
