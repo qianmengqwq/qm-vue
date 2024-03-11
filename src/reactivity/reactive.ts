@@ -1,3 +1,4 @@
+import { isObject } from '../shard/index'
 import {
   mutableHandlers,
   readonlyHandlers,
@@ -24,6 +25,10 @@ export function readonly<T extends object>(raw: T) {
 }
 
 export function shallowReadonly<T extends object>(raw: T) {
+  if (!isObject(raw)) {
+    console.warn(`target ${raw} must be an object`)
+    return
+  }
   return createReactiveObject(raw, shallowReadonlyHandlers)
 }
 

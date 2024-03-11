@@ -12,4 +12,6 @@ interface ComponentInstance {
   proxy: object
   setupState: object
   render: Function
+  props: any
+  emit: Function
 }

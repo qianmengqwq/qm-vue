@@ -1,4 +1,7 @@
-import { instanceProxyHandler } from "./instanceProxyHandler"
+import { shallowReadonly } from '../reactivity/reactive'
+import { emit } from './componentEmit'
+import { initProps } from './componentProps'
+import { instanceProxyHandler } from './instanceProxyHandler'
 
 export function createComponentInstance(vnode: Vnode) {
   const component: ComponentInstance = {
@@ -7,12 +10,17 @@ export function createComponentInstance(vnode: Vnode) {
     setupState: {},
     proxy: {},
     render: () => {},
+    props: {},
+    emit: () => {},
   }
+
+  component.emit = emit.bind(null, component)
   return component
 }
 
 export function setupComponent(instance: ComponentInstance) {
-  // initProps()
+  console.log('instance', instance)
+  initProps(instance)
   // initSlots()
 
   setupStatefulComponent(instance)
@@ -20,15 +28,14 @@ export function setupComponent(instance: ComponentInstance) {
 
 function setupStatefulComponent(instance: ComponentInstance) {
   const Component = instance.type
-  instance.proxy = new Proxy(
-    {_: instance},
-    instanceProxyHandler
-  )
+  instance.proxy = new Proxy({ _: instance }, instanceProxyHandler)
   const { setup } = Component
   if (setup) {
     //function -> render
     // Object -> 注入到上下文中
-    const setupResult = setup()
+    const setupResult = setup(shallowReadonly(instance.props), {
+      emit: instance.emit,
+    })
 
     handleSetupResult(instance, setupResult)
   }

@@ -31,6 +31,7 @@ function mountElement(vnode: Vnode, container: any) {
   vnode.el = el
 
   const { props, children, shapeFlag } = vnode
+
   if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children
   } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
@@ -41,6 +42,12 @@ function mountElement(vnode: Vnode, container: any) {
 
   for (const key in props) {
     const val = props[key]
+    // console.log('key',key)
+    const isOn = (key: string) => /^on[A-Z]/.test(key)
+    if (isOn(key)) {
+      const event = key.slice(2).toLowerCase()
+      el.addEventListener(event, val)
+    }
     el.setAttribute(key, val)
   }
 
