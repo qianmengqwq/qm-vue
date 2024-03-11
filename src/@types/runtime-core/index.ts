@@ -3,6 +3,7 @@ interface Vnode {
   props: any
   children: any
   el: HTMLElement | null
+  shapeFlag: number
 }
 
 interface ComponentInstance {
