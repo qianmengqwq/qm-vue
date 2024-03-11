@@ -1,5 +1,9 @@
 import { ShapeFlags } from './ShapeFlags'
-export function createVnode(type: any, props?: any, children?: any) {
+export function createVnode(
+  type: ComponentInstance | string,
+  props?: object,
+  children?: Array<any> | string
+) {
   const vnode: Vnode = {
     type,
     props,
@@ -16,7 +20,7 @@ export function createVnode(type: any, props?: any, children?: any) {
   return vnode
 }
 
-function getShapeFlag(type: any) {
+function getShapeFlag(type: unknown) {
   return typeof type === 'string'
     ? ShapeFlags.ELEMENT
     : ShapeFlags.STATEFUL_COMPONENT
