@@ -14,4 +14,5 @@ interface ComponentInstance {
   render: Function
   props: any
   emit: Function
+  slots: any
 }

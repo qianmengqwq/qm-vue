@@ -11,6 +11,8 @@ interface ProxyHandler {
 const propertiesMap = new Map<PropertyKey, Function>()
 
 propertiesMap.set('$el', (instance: ComponentInstance) => instance.vnode.el)
+propertiesMap.set('$slots', (instance: ComponentInstance) => instance.slots)
+  
 
 export const instanceProxyHandler: ProxyHandler = {
   get({ _: instance }, key, receiver) {

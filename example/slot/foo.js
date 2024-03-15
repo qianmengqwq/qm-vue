@@ -6,6 +6,6 @@ export const Foo = {
   },
   render() {
     const foo = h('div', {}, 'foo')
-    return h('div', {}, [foo])
+    return h('div', {}, [foo, h('div', {}, this.$slots)])
   },
 }
