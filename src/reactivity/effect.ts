@@ -1,4 +1,4 @@
-import { extend } from '../shard'
+import { extend } from '../shard/index'
 
 interface EffectOptions {
   scheduler?: Function

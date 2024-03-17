@@ -16,6 +16,7 @@ function track(target, key) {
       depsMap.set(key, (dep = new Set())) // Create a new Set
     }
     dep.add(activeEffect) // Add effect to dependency map
+    console.log('track:', target, key)
   }
 }
 
@@ -79,35 +80,37 @@ function computed(getter) {
 
   return result
 }
+let obj = reactive({ name: 'sayori', age: 21 })
 
-let product = reactive({ price: 5, quantity: 2 })
 
-let salePrice = computed(() => {
-  return product.price * 0.9
-})
+// let product = reactive({ price: 5, quantity: 2 })
 
-let total = computed(() => {
-  return salePrice.value * product.quantity
-})
+// let salePrice = computed(() => {
+//   return product.price * 0.9
+// })
 
-console.log(
-  `Before updated quantity total (should be 9) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
-)
-product.quantity = 3
-console.log(
-  `After updated quantity total (should be 13.5) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
-)
-product.price = 10
-console.log(
-  `After updated price total (should be 27) = ${total.value} salePrice (should be 9) = ${salePrice.value}`
-)
+// let total = computed(() => {
+//   return salePrice.value * product.quantity
+// })
 
-// Plus let's verify we can add additional objects to the reactive object
+// console.log(
+//   `Before updated quantity total (should be 9) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
+// )
+// product.quantity = 3
+// console.log(
+//   `After updated quantity total (should be 13.5) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
+// )
+// product.price = 10
+// console.log(
+//   `After updated price total (should be 27) = ${total.value} salePrice (should be 9) = ${salePrice.value}`
+// )
 
-product.name = 'Shoes'
+// // Plus let's verify we can add additional objects to the reactive object
 
-effect(() => {
-  console.log(`Product name is now ${product.name}`)
-})
+// product.name = 'Shoes'
 
-product.name = 'Socks'
+// effect(() => {
+//   console.log(`Product name is now ${product.name}`)
+// })
+
+// product.name = 'Socks'

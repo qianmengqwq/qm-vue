@@ -1,4 +1,4 @@
-import { isObject, extend } from '../shard'
+import { isObject, extend } from '../shard/index'
 import { reactive, readonly, track, trigger } from './index'
 
 enum ReactiveFlags {
