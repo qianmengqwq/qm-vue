@@ -2,9 +2,9 @@ import { ShapeFlags } from './ShapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { Fragment, __Text } from './vnode'
 
-export function render(vnode: Vnode, container: any, parentComponent: any) {
+export function render(vnode: Vnode, container: any) {
   //调用patch 方便递归处理
-  patch(vnode, container, parentComponent)
+  patch(vnode, container, null)
 }
 
 function patch(vnode: Vnode, container: any, parentComponent: any) {
