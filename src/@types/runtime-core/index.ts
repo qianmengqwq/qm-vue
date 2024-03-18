@@ -2,7 +2,7 @@ interface Vnode {
   type: any
   props: any
   children: any
-  el: HTMLElement | null
+  el: HTMLElement | null | Text
   shapeFlag: number
 }
 

@@ -1,5 +1,6 @@
 import { ShapeFlags } from './ShapeFlags'
 import { createComponentInstance, setupComponent } from './component'
+import { Fragment,__Text} from './vnode'
 
 export function render(vnode: Vnode, container: any) {
   //调用patch 方便递归处理
@@ -7,13 +8,32 @@ export function render(vnode: Vnode, container: any) {
 }
 
 function patch(vnode: Vnode, container: any) {
-  const { shapeFlag } = vnode
-  console.log('vnode.type', vnode.type)
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    processElement(vnode, container)
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    processComponent(vnode, container)
+  const { type, shapeFlag } = vnode
+
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container)
+      break
+    case __Text:
+      processText(vnode, container)
+      break
+    default:
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        processElement(vnode, container)
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        processComponent(vnode, container)
+      }
   }
+}
+
+function processFragment(vnode: Vnode, container: any) {
+  mountChildren(vnode, container)
+}
+
+function mountChildren(vnode: Vnode, container: any) {
+  vnode.children.forEach((vnode: Vnode) => {
+    patch(vnode, container)
+  })
 }
 
 function processComponent(vnode: Vnode, container: any) {
@@ -81,4 +101,12 @@ function setupRenderEffect(
   //     'instance.vnode.el === subTree.el',
   //     instance.vnode.el === subTree.el
   //   )
+}
+
+function processText(vnode: Vnode, container: any) {
+  const { children } = vnode
+  const textNode = document.createTextNode(children)
+  console.log('textNode', textNode)
+  vnode.el = textNode
+  container.append(textNode)
 }
