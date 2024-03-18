@@ -5,7 +5,17 @@ export const App = {
   name: 'App',
   render() {
     const app = h('div', {}, 'app')
-    const foo = h(Foo, {}, [h('p', {}, 'foo'), h('p', {}, 'foo2')])
+    // const foo = h(Foo, {}, [h('p', {}, '123'), h('p', {}, '456')])
+    // 优化成对象形式，可以精确对应元素，以控制渲染的位置
+    // 优化成func，以带props参数（作用域插槽）
+    const foo = h(
+      Foo,
+      {},
+      {
+        header: ({ fooage }) => h('h1', {}, 'header' + fooage),
+        footer: () => h('h1', {}, 'footer'),
+      }
+    )
     return h('div', {}, [app, foo])
   },
 

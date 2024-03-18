@@ -17,6 +17,13 @@ export function createVnode(
   } else if (Array.isArray(children)) {
     vnode.shapeFlag |= ShapeFlags.ARRAY_CHILDREN
   }
+
+  // 判断slot的children：组件+children为object
+  if(vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT){
+    if(typeof children === 'object'){
+      vnode.shapeFlag |= ShapeFlags.SLOT_CHILDREN
+    }
+  }
   return vnode
 }
 
