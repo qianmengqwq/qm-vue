@@ -15,4 +15,6 @@ interface ComponentInstance {
   props: any
   emit: Function
   slots: any
+  parent: any
+  provides:any
 }
